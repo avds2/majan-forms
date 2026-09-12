@@ -1,0 +1,17 @@
+forms.example.ir {
+	encode zstd gzip
+
+	request_body {
+		max_size 101MB
+	}
+
+	reverse_proxy 127.0.0.1:8080 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+		transport http {
+			read_timeout 35s
+			write_timeout 35s
+		}
+	}
+}

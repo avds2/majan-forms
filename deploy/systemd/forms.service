@@ -1,0 +1,47 @@
+[Unit]
+Description=Persian Forms Service
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=forms
+Group=forms
+EnvironmentFile=/etc/forms/forms.env
+ExecStartPre=/usr/local/bin/forms restore pending
+ExecStart=/usr/local/bin/forms serve
+Restart=on-failure
+RestartSec=3s
+RestartPreventExitStatus=75
+StateDirectory=forms
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/forms
+ReadWritePaths=/var/backups/forms
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+AmbientCapabilities=
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+LimitNOFILE=16384
+TasksMax=128
+MemoryHigh=384M
+MemoryMax=512M
+CPUWeight=50
+IOWeight=50
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,43 @@
+name: گزارش اشکال
+description: گزارش یک رفتار قابل‌بازتولید در فرم‌ها
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: لطفاً هیچ secret، پاسخ واقعی یا فایل کاربران را در issue عمومی قرار ندهید. آسیب‌پذیری‌ها را از مسیر خصوصی Security گزارش کنید.
+  - type: input
+    id: version
+    attributes:
+      label: نسخه یا commit
+      placeholder: نسخهٔ release یا SHA کامل commit
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: شرح اشکال
+      description: انتظار چه بود و چه اتفاقی افتاد؟
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: مراحل بازتولید
+      description: با دادهٔ مصنوعی و بدون اطلاعات حساس بنویسید.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: محیط
+      description: سیستم‌عامل، PostgreSQL، مرورگر و reverse proxy مرتبط
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: بررسی ایمنی
+      options:
+        - label: این گزارش شامل secret یا دادهٔ واقعی کاربران نیست.
+          required: true
+        - label: این مورد یک آسیب‌پذیری امنیتیِ افشانشده در فضای عمومی نیست.
+          required: true

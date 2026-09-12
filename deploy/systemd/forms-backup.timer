@@ -1,0 +1,12 @@
+[Unit]
+Description=Create a daily Persian Forms backup
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+RandomizedDelaySec=30min
+Persistent=true
+Unit=forms-backup.service
+
+[Install]
+WantedBy=timers.target
+

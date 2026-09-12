@@ -1,0 +1,27 @@
+name: پیشنهاد قابلیت
+description: پیشنهاد یک تغییر محدود و قابل‌ارزیابی
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: مسئله
+      description: این قابلیت چه نیاز واقعی را برطرف می‌کند؟
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: راه‌حل پیشنهادی
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: راه‌های جایگزین
+  - type: textarea
+    id: impact
+    attributes:
+      label: اثر احتمالی
+      description: اثر روی RTL، دسترس‌پذیری، migration، استقرار یا حریم داده را بنویسید.
