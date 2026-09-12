@@ -1,0 +1,47 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+.envrc
+.direnv/
+*.key
+*.pem
+*.p12
+*.pfx
+*.secret
+
+# Runtime state and operator data
+/var/
+/backups/
+*.log
+*.pid
+*.sqlite
+*.sqlite3
+
+# Build and release artifacts
+/bin/
+/dist/
+/coverage/
+/tmp/
+web/admin/dist/
+*.test
+*.prof
+*.out
+*.coverprofile
+
+# Dependency and tool caches
+node_modules/
+web/admin/node_modules/
+web/admin/.vite/
+.cache/
+/.agents/
+/.codex/
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

@@ -1,0 +1,101 @@
+{{define "public"}}<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/public-assets/forms.css?v={{assetVersion "forms.css"}}" />
+    <script src="/public-assets/forms.js?v={{assetVersion "forms.js"}}" defer></script>
+    {{if .TurnstileSiteKey}}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{{end}}
+  </head>
+  <body class="theme-{{.Theme}} align-{{.Alignment}}">
+    <main class="public-shell">
+      <header class="public-brand"><span class="brand-mark">ف</span><span>فرم‌ها</span></header>
+      <article class="form-card">
+        <div class="card-accent"></div>
+        {{if eq .Stage "landing"}}
+          <div class="intro-mark">{{.VersionLabel}}</div>
+          <h1>{{.Title}}</h1>
+          {{if .Closed}}
+            <div class="notice" role="status"><strong>پذیرش پاسخ متوقف است</strong><p>این فرم فعلاً پاسخ جدید نمی‌پذیرد.</p></div>
+          {{else}}
+            <p class="lead">برای آغاز، دکمهٔ زیر را انتخاب کنید. پاسخ‌ها تا ثبت نهایی در همین نشست نگه‌داری می‌شوند.</p>
+            <form method="post" action="/f/{{.Slug}}/start">
+              <input type="hidden" name="start_token" value="{{.StartToken}}" />
+              <div class="trap" aria-hidden="true"><label>وب‌سایت<input name="website" tabindex="-1" autocomplete="off" /></label></div>
+              {{if .TurnstileSiteKey}}<div class="cf-turnstile" data-sitekey="{{.TurnstileSiteKey}}" data-language="fa"></div>{{end}}
+              <button class="primary-action" type="submit">شروع فرم</button>
+            </form>
+          {{end}}
+        {{else if eq .Stage "page"}}
+          <div class="progress-head"><span>صفحهٔ {{persian .CurrentStep}} از {{persian .TotalSteps}}</span><span>{{persian .ProgressPercent}}٪</span></div>
+          <progress class="progress-track" max="100" value="{{.ProgressPercent}}">{{persian .ProgressPercent}}٪</progress>
+          <h1>{{.Page.Title}}</h1>
+          {{if .Page.Description}}<p class="lead">{{.Page.Description}}</p>{{end}}
+          {{if .SummaryError}}<div class="error-summary" role="alert" tabindex="-1"><strong>لطفاً پاسخ‌ها را بررسی کنید</strong><p>{{.SummaryError}}</p></div>{{end}}
+          <form method="post" action="/f/{{.Slug}}/step" enctype="multipart/form-data" data-public-form>
+            <input type="hidden" name="session_token" value="{{.SessionToken}}" />
+            <input type="hidden" name="page_id" value="{{.Page.ID}}" />
+            {{range .Fields}}{{$field := .}}{{$grouped := or (eq .Type "yes_no") (eq .Type "single_choice") (eq .Type "multi_choice") (eq .Type "rating") (eq .Type "scale") (eq .Type "nps") (eq .Type "matrix") (eq .Type "consent") (eq .Type "full_name") (eq .Type "address") (eq .Type "date_range") (eq .Type "signature")}}{{$error := index $.Errors .ID}}{{$description := describedBy . $error}}
+              <section class="field {{if eq .Width "half"}}field-half{{end}}" id="field-{{.ID}}">
+                {{if eq .Type "heading"}}<h2 class="content-heading">{{.Content}}</h2>
+                {{else if eq .Type "description"}}<p class="content-copy">{{.Content}}</p>
+                {{else if eq .Type "divider"}}<hr />
+                {{else if eq .Type "spacer"}}<div class="spacer" aria-hidden="true"></div>
+                {{else if eq .Type "image"}}{{if .Image}}<figure><img src="{{.Image.Source}}" alt="{{.Image.Alt}}" loading="lazy" /></figure>{{end}}
+                {{else if or (eq .Type "hidden") (eq .Type "calculated")}}
+                {{else}}
+                  {{if $grouped}}<div class="field-label" id="label-{{.ID}}">{{.Label}}{{if .Required}}<span aria-label="الزامی">*</span>{{end}}</div>{{else}}<label class="field-label" for="input-{{.ID}}">{{.Label}}{{if .Required}}<span aria-label="الزامی">*</span>{{end}}</label>{{end}}
+                  {{if .HelpText}}<p class="field-help" id="help-{{.ID}}">{{.HelpText}}</p>{{end}}
+                  {{with index $.Errors .ID}}<p class="field-error" id="error-{{$field.ID}}" role="alert">{{.}}</p>{{end}}
+
+                  {{if eq .Type "short_text"}}<input id="input-{{.ID}}" name="{{.ID}}" value="{{index $.Values .ID}}" placeholder="{{.Placeholder}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "long_text"}}<textarea id="input-{{.ID}}" name="{{.ID}}" rows="5" placeholder="{{.Placeholder}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}}>{{index $.Values .ID}}</textarea>
+                  {{else if eq .Type "email"}}<input id="input-{{.ID}}" type="email" inputmode="email" name="{{.ID}}" value="{{index $.Values .ID}}" autocomplete="email" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "phone"}}<input id="input-{{.ID}}" type="tel" inputmode="tel" name="{{.ID}}" value="{{index $.Values .ID}}" autocomplete="tel" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "url"}}<input id="input-{{.ID}}" type="url" inputmode="url" name="{{.ID}}" value="{{index $.Values .ID}}" placeholder="https://" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "full_name"}}<div class="split-fields" role="group" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}}><label>نام<input name="{{.ID}}_first" value="{{index $.Values (join .ID "_first")}}" {{if .Required}}required{{end}} /></label><label>نام خانوادگی<input name="{{.ID}}_last" value="{{index $.Values (join .ID "_last")}}" {{if .Required}}required{{end}} /></label></div>
+                  {{else if eq .Type "address"}}<div class="address-fields" role="group" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}}><div class="split-fields"><label>استان<input name="{{.ID}}_province" value="{{index $.Values (join .ID "_province")}}" /></label><label>شهر<input name="{{.ID}}_city" value="{{index $.Values (join .ID "_city")}}" /></label></div><label>نشانی<textarea name="{{.ID}}_address" rows="3" {{if .Required}}required{{end}}>{{index $.Values (join .ID "_address")}}</textarea></label><label>کد پستی<input inputmode="numeric" name="{{.ID}}_postal" value="{{index $.Values (join .ID "_postal")}}" /></label></div>
+                  {{else if eq .Type "national_id"}}<input id="input-{{.ID}}" inputmode="numeric" maxlength="10" name="{{.ID}}" value="{{index $.Values .ID}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if or (eq .Type "number") (eq .Type "money") (eq .Type "percent")}}<input id="input-{{.ID}}" inputmode="decimal" name="{{.ID}}" value="{{index $.Values .ID}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if or (eq .Type "rating") (eq .Type "scale") (eq .Type "nps")}}<div class="scale-options" role="radiogroup" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}} {{if .Required}}aria-required="true"{{end}}>{{range scaleValues .}}<label><input type="radio" name="{{$field.ID}}" value="{{.}}" {{if eq (index $.Values $field.ID) (print .)}}checked{{end}} {{if $field.Required}}required{{end}} /><span>{{persian .}}</span></label>{{end}}</div>
+                  {{else if eq .Type "yes_no"}}<div class="choice-grid" role="radiogroup" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}} {{if .Required}}aria-required="true"{{end}}><label><input type="radio" name="{{.ID}}" value="true" {{if eq (index $.Values .ID) "true"}}checked{{end}} {{if .Required}}required{{end}} /><span>بله</span></label><label><input type="radio" name="{{.ID}}" value="false" {{if eq (index $.Values .ID) "false"}}checked{{end}} {{if .Required}}required{{end}} /><span>خیر</span></label></div>
+                  {{else if eq .Type "single_choice"}}<div class="choice-list" role="radiogroup" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}} {{if .Required}}aria-required="true"{{end}}>{{range .Options}}<label><input type="radio" name="{{$field.ID}}" value="{{.ID}}" {{if eq (index $.Values $field.ID) .ID}}checked{{end}} {{if $field.Required}}required{{end}} /><span>{{.Label}}</span></label>{{end}}</div>
+                  {{else if eq .Type "multi_choice"}}<div class="choice-list" role="group" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}} {{if .Required}}aria-required="true"{{end}}>{{range .Options}}<label><input type="checkbox" name="{{$field.ID}}" value="{{.ID}}" {{if selected $.Selections $field.ID .ID}}checked{{end}} /><span>{{.Label}}</span></label>{{end}}</div>
+                  {{else if eq .Type "dropdown"}}<select id="input-{{.ID}}" name="{{.ID}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}}><option value="">انتخاب کنید</option>{{range .Options}}<option value="{{.ID}}" {{if eq (index $.Values $field.ID) .ID}}selected{{end}}>{{.Label}}</option>{{end}}</select>
+                  {{else if eq .Type "multi_dropdown"}}<select id="input-{{.ID}}" name="{{.ID}}" multiple size="5" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}}>{{range .Options}}<option value="{{.ID}}" {{if selected $.Selections $field.ID .ID}}selected{{end}}>{{.Label}}</option>{{end}}</select>
+                  {{else if eq .Type "matrix"}}{{with .Matrix}}{{$matrix := .}}<div class="matrix-wrap" role="group" aria-labelledby="label-{{$field.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $field.Required}}aria-required="true"{{end}}><table><caption class="visually-hidden">{{$field.Label}}</caption><thead><tr><th scope="col">ردیف</th>{{range .Columns}}<th scope="col">{{.Label}}</th>{{end}}</tr></thead><tbody>{{range .Rows}}{{$row := .}}<tr><th scope="row">{{.Label}}</th>{{range $matrix.Columns}}<td><input type="{{if $matrix.Multiple}}checkbox{{else}}radio{{end}}" name="{{$row.ID}}" value="{{.ID}}" aria-label="{{$row.Label}}، {{.Label}}" {{if selected $.Selections $row.ID .ID}}checked{{end}} {{if and $field.Required (not $matrix.Multiple)}}required{{end}} /></td>{{end}}</tr>{{end}}</tbody></table></div>{{end}}
+                  {{else if eq .Type "persian_date"}}<input id="input-{{.ID}}" inputmode="numeric" name="{{.ID}}" value="{{index $.Values .ID}}" placeholder="۱۴۰۵/۰۶/۱۵" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} /><small class="input-note" id="note-{{.ID}}">تاریخ را به‌صورت شمسی وارد کنید.</small>
+                  {{else if eq .Type "time"}}<input id="input-{{.ID}}" type="time" name="{{.ID}}" value="{{index $.Values .ID}}" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "datetime"}}<input id="input-{{.ID}}" name="{{.ID}}" value="{{index $.Values .ID}}" placeholder="۱۴۰۵/۰۶/۱۵ ۱۴:۳۰" {{if .Required}}required{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} />
+                  {{else if eq .Type "date_range"}}<div class="split-fields" role="group" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}}><label>از تاریخ<input inputmode="numeric" name="{{.ID}}_start" value="{{index $.Values (join .ID "_start")}}" placeholder="۱۴۰۵/۰۶/۱۵" {{if .Required}}required{{end}} /></label><label>تا تاریخ<input inputmode="numeric" name="{{.ID}}_end" value="{{index $.Values (join .ID "_end")}}" placeholder="۱۴۰۵/۰۶/۲۰" {{if .Required}}required{{end}} /></label></div>
+                  {{else if eq .Type "file"}}<div class="file-picker"><input class="file-input" id="input-{{.ID}}" type="file" name="{{.ID}}" {{if gt .File.MaximumFiles 1}}multiple{{end}} {{if .Required}}aria-required="true"{{end}} {{if $description}}aria-describedby="{{$description}}"{{end}} {{if $error}}aria-invalid="true"{{end}} /><label class="file-button" for="input-{{.ID}}">انتخاب فایل</label><span class="file-status" data-file-status aria-live="polite">هنوز فایلی انتخاب نشده است</span></div><small class="input-note" id="note-{{.ID}}">پسوندهای مجاز: {{joinList .File.Extensions "، "}}</small>
+                  {{else if eq .Type "signature"}}<div class="signature-box" data-signature role="group" aria-labelledby="label-{{.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}}><canvas width="700" height="220" aria-label="محل امضا"></canvas><input type="hidden" name="{{.ID}}" /><button type="button" class="secondary-action" data-clear-signature>پاک‌کردن امضا</button><div class="signature-upload"><span>یا تصویر PNG امضا را بارگذاری کنید:</span><div class="file-picker"><input class="file-input" id="input-{{.ID}}-file" type="file" name="{{.ID}}_file" accept="image/png" {{if .Required}}aria-required="true"{{end}} /><label class="file-button" for="input-{{.ID}}-file">انتخاب تصویر امضا</label><span class="file-status" data-file-status aria-live="polite">هنوز تصویری انتخاب نشده است</span></div></div></div>
+                  {{else if eq .Type "consent"}}{{with .Consent}}<div role="group" aria-labelledby="label-{{$field.ID}}" {{if $description}}aria-describedby="{{$description}}"{{end}}><label class="consent"><input type="checkbox" name="{{$field.ID}}" value="accepted" {{if or (eq (index $.Values $field.ID) "true") (eq (index $.Values $field.ID) "accepted")}}checked{{end}} {{if $field.Required}}required{{end}} /><span>{{.AgreementText}}{{if .LinkURL}} <a href="{{.LinkURL}}" target="_blank" rel="noopener noreferrer">{{.LinkLabel}}</a>{{end}}</span></label></div>{{end}}
+                  {{end}}
+                {{end}}
+              </section>
+            {{end}}
+            <div class="form-actions">
+              {{if .CanGoBack}}<button class="secondary-action" type="submit" name="_action" value="back" formnovalidate>قبلی</button>{{end}}
+              <button class="primary-action" type="submit" name="_action" value="next">بعدی</button>
+            </div>
+          </form>
+        {{else if eq .Stage "ending"}}
+          <div class="ending-mark">✓</div><h1>{{.Ending.Title}}</h1>{{if .Ending.Message}}<p class="lead">{{.Ending.Message}}</p>{{end}}
+          <div class="notice"><strong>یک گام تا ثبت نهایی</strong><p>پس از ثبت، امکان تغییر این پاسخ در همین نشست وجود ندارد.</p></div>
+          <div class="form-actions">
+            <form method="post" action="/f/{{.Slug}}/step" enctype="multipart/form-data"><input type="hidden" name="session_token" value="{{.SessionToken}}" /><input type="hidden" name="_action" value="back" /><button class="secondary-action" type="submit">قبلی</button></form>
+            <form method="post" action="/f/{{.Slug}}/submit" data-final-submit><input type="hidden" name="session_token" value="{{.SessionToken}}" /><input type="hidden" name="idempotency_key" value="{{.SubmitKey}}" /><button class="primary-action" type="submit">ثبت نهایی پاسخ</button></form>
+          </div>
+        {{else if eq .Stage "success"}}
+          <div class="ending-mark">✓</div><h1>پاسخ شما ثبت شد</h1><p class="lead">از زمانی که برای تکمیل فرم گذاشتید سپاسگزاریم.</p><p class="receipt">کد پیگیری: <strong dir="ltr">{{.PublicID}}</strong></p>
+        {{else}}
+          <div class="ending-mark error-mark">!</div><h1>{{.Title}}</h1><p class="lead">{{.FatalError}}</p><a class="primary-action link-action" href="/f/{{.Slug}}">بازگشت به فرم</a>
+        {{end}}
+      </article>
+      <footer>اطلاعات این فرم با ارتباط امن ارسال می‌شود.</footer>
+    </main>
+  </body>
+</html>{{end}}
